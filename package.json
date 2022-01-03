@@ -5,10 +5,12 @@
   "dependencies": {
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
-    "@emotion/styled": "latest",
     "@emotion/server": "latest",
+    "@emotion/styled": "latest",
     "@mui/material": "latest",
     "clsx": "latest",
+    "formik": "^2.2.9",
+    "mongodb": "^4.2.2",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"
