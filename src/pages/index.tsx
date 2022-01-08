@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import { GetServerSideProps } from "next";
-import { connectToDatabase } from "../utils/openDB";
 import { Field, Form, Formik } from "formik";
 import {
   FormControl,
@@ -13,11 +12,8 @@ import {
 } from "@mui/material";
 import theme from "../theme";
 import { useRouter } from "next/router";
-
-interface Make {
-  _id: "string";
-  count: number;
-}
+import { getMakes, Make } from "../utils/getMakes";
+import { getModels } from "../utils/getModels";
 
 interface HomeProps {
   makes: Make[];
@@ -114,10 +110,8 @@ export default function Home({ makes }: HomeProps) {
 }
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const { db } = await connectToDatabase();
-  const makes = await db
-    .collection("cars")
-    .aggregate([{ $group: { _id: "$make", count: { $sum: 1 } } }])
-    .toArray();
+  const makes = await getMakes();
+  const models = await getModels("Ford");
+  console.log(models);
   return { props: { makes: JSON.parse(JSON.stringify(makes)) } };
 };
