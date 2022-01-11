@@ -119,16 +119,10 @@ export interface ModelSelectProps extends SelectProps {
   models: Model[];
   make: string;
 }
+
 export const ModelSelect = ({ models, make, ...props }: ModelSelectProps) => {
   const [field] = useField({ name: props.name });
-  const [newModels, setNewModels] = React.useState<Model[]>(models);
-  React.useEffect(() => {
-    const fetchModels = async () => {
-      const res = await axios("/api/models?make=" + make);
-      setNewModels(res.data);
-    };
-    fetchModels();
-  }, [make]);
+  const { data } = useSWR<Model[]>("/api/models?make=" + make);
 
   return (
     <FormControl fullWidth variant="outlined">
@@ -137,7 +131,7 @@ export const ModelSelect = ({ models, make, ...props }: ModelSelectProps) => {
         <MenuItem value="all">
           <em>All Models</em>
         </MenuItem>
-        {newModels.map((model, id) => (
+        {data?.map((model, id) => (
           <MenuItem key={id} value={model._id}>
             {`${model._id} (${model.count})`}
           </MenuItem>

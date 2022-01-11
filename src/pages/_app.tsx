@@ -32,12 +32,13 @@ export default function MyApp(props: MyAppProps) {
         <Nav />
         <SWRConfig
           value={{ fetcher: (url: string) => axios(url).then((r) => r.data) }}
-        ></SWRConfig>
-        <Container maxWidth={false}>
-          <Box marginTop={2}>
-            <Component {...pageProps} />
-          </Box>
-        </Container>
+        >
+          <Container maxWidth={false}>
+            <Box marginTop={2}>
+              <Component {...pageProps} />
+            </Box>
+          </Container>
+        </SWRConfig>
       </ThemeProvider>
     </CacheProvider>
   );
