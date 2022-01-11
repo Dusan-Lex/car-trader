@@ -8,6 +8,8 @@ import theme from "../theme";
 import createEmotionCache from "../createEmotionCache";
 import { Nav } from "../components/Nav";
 import { Box, Container } from "@mui/material";
+import { SWRConfig } from "swr";
+import axios from "axios";
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -28,6 +30,9 @@ export default function MyApp(props: MyAppProps) {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
         <Nav />
+        <SWRConfig
+          value={{ fetcher: (url: string) => axios(url).then((r) => r.data) }}
+        ></SWRConfig>
         <Container maxWidth={false}>
           <Box marginTop={2}>
             <Component {...pageProps} />

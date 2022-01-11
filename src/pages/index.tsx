@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { GetServerSideProps } from "next";
-import { Field, Form, Formik } from "formik";
+import { Field, Form, Formik, useField } from "formik";
 import {
   FormControl,
   Grid,
@@ -9,25 +9,30 @@ import {
   MenuItem,
   Paper,
   Select,
+  SelectProps,
 } from "@mui/material";
 import theme from "../theme";
 import { useRouter } from "next/router";
 import { getMakes, Make } from "../utils/getMakes";
-import { getModels } from "../utils/getModels";
+import { getModels, Model } from "../utils/getModels";
+import { getAsString } from "../utils/getAsString";
+import useSWR from "swr";
+import axios from "axios";
 
 interface HomeProps {
   makes: Make[];
+  models: Model[];
 }
 
 const prices = [500, 1000, 5000, 15000, 25000, 50000, 2500000];
 
-export default function Home({ makes }: HomeProps) {
+export default function Home({ makes, models }: HomeProps) {
   const { query } = useRouter();
   const initialValues = {
-    make: query.make || "all",
-    model: query.model || "all",
-    minPrice: query.minPrice || "all",
-    maxPrice: query.maxPrice || "all",
+    make: getAsString(query.make) || "all",
+    model: getAsString(query.model) || "all",
+    minPrice: getAsString(query.minPrice) || "all",
+    maxPrice: getAsString(query.maxPrice) || "all",
   };
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>
@@ -59,7 +64,7 @@ export default function Home({ makes }: HomeProps) {
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
-                Model
+                <ModelSelect name="model" make={values.make} models={models} />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth variant="outlined">
@@ -109,9 +114,47 @@ export default function Home({ makes }: HomeProps) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const makes = await getMakes();
-  const models = await getModels("Ford");
-  console.log(models);
-  return { props: { makes: JSON.parse(JSON.stringify(makes)) } };
+export interface ModelSelectProps extends SelectProps {
+  name: string;
+  models: Model[];
+  make: string;
+}
+export const ModelSelect = ({ models, make, ...props }: ModelSelectProps) => {
+  const [field] = useField({ name: props.name });
+  const [newModels, setNewModels] = React.useState<Model[]>(models);
+  React.useEffect(() => {
+    const fetchModels = async () => {
+      const res = await axios("/api/models?make=" + make);
+      setNewModels(res.data);
+    };
+    fetchModels();
+  }, [make]);
+
+  return (
+    <FormControl fullWidth variant="outlined">
+      <InputLabel id="search-model">Model</InputLabel>
+      <Select labelId="search-model" label="Model" {...field} {...props}>
+        <MenuItem value="all">
+          <em>All Models</em>
+        </MenuItem>
+        {newModels.map((model, id) => (
+          <MenuItem key={id} value={model._id}>
+            {`${model._id} (${model.count})`}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+};
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const make = getAsString(ctx.query.make) || "";
+  const [makes, models] = await Promise.all([getMakes(), getModels(make)]);
+
+  return {
+    props: {
+      makes: JSON.parse(JSON.stringify(makes)),
+      models: JSON.parse(JSON.stringify(models)),
+    },
+  };
 };

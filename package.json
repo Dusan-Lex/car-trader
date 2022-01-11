@@ -8,12 +8,14 @@
     "@emotion/server": "latest",
     "@emotion/styled": "latest",
     "@mui/material": "latest",
+    "axios": "^0.24.0",
     "clsx": "latest",
     "formik": "^2.2.9",
     "mongodb": "^4.2.2",
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "swr": "^1.1.2"
   },
   "scripts": {
     "dev": "next",

@@ -13,7 +13,6 @@ const Img = styled("img")({
   width: "100%",
 });
 const CarDetails = ({ car }: CarDetailProps) => {
-  console.log(car);
   if (!car) {
     return <h1>Sorry,car not found!</h1>;
   }
