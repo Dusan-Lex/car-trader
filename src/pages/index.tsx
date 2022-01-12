@@ -1,8 +1,9 @@
 import * as React from "react";
 
 import { GetServerSideProps } from "next";
-import { Field, Form, Formik, useField } from "formik";
+import { Field, Form, Formik, useField, useFormikContext } from "formik";
 import {
+  Button,
   FormControl,
   Grid,
   InputLabel,
@@ -17,7 +18,6 @@ import { getMakes, Make } from "../utils/getMakes";
 import { getModels, Model } from "../utils/getModels";
 import { getAsString } from "../utils/getAsString";
 import useSWR from "swr";
-import axios from "axios";
 
 interface HomeProps {
   makes: Make[];
@@ -27,7 +27,7 @@ interface HomeProps {
 const prices = [500, 1000, 5000, 15000, 25000, 50000, 2500000];
 
 export default function Home({ makes, models }: HomeProps) {
-  const { query } = useRouter();
+  const { query, push } = useRouter();
   const initialValues = {
     make: getAsString(query.make) || "all",
     model: getAsString(query.model) || "all",
@@ -35,7 +35,14 @@ export default function Home({ makes, models }: HomeProps) {
     maxPrice: getAsString(query.maxPrice) || "all",
   };
   return (
-    <Formik initialValues={initialValues} onSubmit={() => {}}>
+    <Formik
+      initialValues={initialValues}
+      onSubmit={(values) => {
+        push({ pathname: "/", query: { ...values, page: 1 } }, undefined, {
+          shallow: true,
+        });
+      }}
+    >
       {({ values }) => (
         <Form>
           <Paper
@@ -106,6 +113,16 @@ export default function Home({ makes, models }: HomeProps) {
                   </Field>
                 </FormControl>
               </Grid>
+              <Grid item xs={12}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                >
+                  Search for cars
+                </Button>
+              </Grid>
             </Grid>
           </Paper>
         </Form>
@@ -121,9 +138,16 @@ export interface ModelSelectProps extends SelectProps {
 }
 
 export const ModelSelect = ({ models, make, ...props }: ModelSelectProps) => {
+  const { setFieldValue } = useFormikContext();
   const [field] = useField({ name: props.name });
-  const { data } = useSWR<Model[]>("/api/models?make=" + make);
-
+  const { data } = useSWR<Model[]>("/api/models?make=" + make, {
+    onSuccess: (newValues) => {
+      if (!newValues.map((a) => a._id).includes(field.value)) {
+        setFieldValue("model", "all");
+      }
+    },
+  });
+  const newModels = data || models;
   return (
     <FormControl fullWidth variant="outlined">
       <InputLabel id="search-model">Model</InputLabel>
@@ -131,7 +155,7 @@ export const ModelSelect = ({ models, make, ...props }: ModelSelectProps) => {
         <MenuItem value="all">
           <em>All Models</em>
         </MenuItem>
-        {data?.map((model, id) => (
+        {newModels.map((model, id) => (
           <MenuItem key={id} value={model._id}>
             {`${model._id} (${model.count})`}
           </MenuItem>
