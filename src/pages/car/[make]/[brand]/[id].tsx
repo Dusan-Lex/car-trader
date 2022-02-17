@@ -30,16 +30,16 @@ const CarDetails = ({ car }: CarDetailProps) => {
                 {car.price} €
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Godina proizvodnje: {car.year}
+                Year: {car.year}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Pređeni kilometri: {car.kilometers}
+                Kilometers: {car.kilometers}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Gorivo: {car.fuel_type === "Petrol" && "Benzin"}
+                Fuel Type: {car.fuel_type === "Petrol" && "Benzin"}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Detalji: {car.details}
+                Details: {car.details}
               </Typography>
             </Grid>
           </Grid>
