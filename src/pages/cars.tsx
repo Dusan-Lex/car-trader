@@ -1,7 +1,13 @@
 import { Grid, Pagination } from "@mui/material";
+import deepEqual from "fast-deep-equal";
 import { GetServerSideProps } from "next";
+import Head from "next/head";
 import { useRouter } from "next/router";
+import { stringify } from "querystring";
+import { useState } from "react";
+import useSWR from "swr";
 import Search from ".";
+import { CarCard } from "../components/CarCard";
 import { getAsString } from "../utils/getAsString";
 import { getMakes, Make } from "../utils/getMakes";
 import { getModels, Model } from "../utils/getModels";
@@ -22,10 +28,20 @@ export default function CarsList({
   totalPages,
 }: CarsListProps) {
   const router = useRouter();
-
+  const [serverQuery] = useState(router.query);
+  const { data } = useSWR("/api/cars?" + stringify(router.query), {
+    dedupingInterval: 15000,
+    fallbackData: deepEqual(router.query, serverQuery)
+      ? { cars, totalPages }
+      : undefined,
+  });
   const changeHandler = (event: React.ChangeEvent<unknown>, value: number) => {
     event.preventDefault();
-    router.push({ pathname: "/cars", query: { ...router.query, page: value } });
+    router.push(
+      { pathname: "/cars", query: { ...router.query, page: value } },
+      undefined,
+      { shallow: true }
+    );
   };
 
   return (
@@ -33,20 +49,37 @@ export default function CarsList({
       <Grid item xs={12} sm={5} md={3}>
         <Search singleColumn makes={makes} models={models} />
       </Grid>
-      <Grid item xs={12} sm={7} md={9}>
-        <Pagination
-          page={parseInt(getAsString(router.query.page) || "1")}
-          count={totalPages}
-          color="primary"
-          onChange={changeHandler}
-        />
-        <pre>{JSON.stringify({ cars, totalPages }, null, 4)}</pre>
+      <Grid container item xs={12} sm={7} md={9} spacing={3}>
+        <Grid item xs={12}>
+          <Pagination
+            page={parseInt(getAsString(router.query.page) || "1")}
+            count={data?.totalPages}
+            color="primary"
+            onChange={changeHandler}
+          />
+        </Grid>
+
+        {data?.cars.map((car) => (
+          <Grid key={car._id.toString()} item xs={12} sm={6}>
+            <CarCard car={car} />
+          </Grid>
+        ))}
+        <Grid item xs={12}>
+          <Pagination
+            page={parseInt(getAsString(router.query.page) || "1")}
+            count={data?.totalPages}
+            color="primary"
+            onChange={changeHandler}
+          />
+        </Grid>
       </Grid>
     </Grid>
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
+export const getServerSideProps: GetServerSideProps<CarsListProps> = async (
+  ctx
+) => {
   const make = getAsString(ctx.query.make) || "";
   const [makes, models, pagination] = await Promise.all([
     getMakes(),

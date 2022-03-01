@@ -40,9 +40,7 @@ export default function Search({ makes, models, singleColumn }: SearchProps) {
     <Formik
       initialValues={initialValues}
       onSubmit={(values) => {
-        push({ pathname: "/cars", query: { ...values, page: 1 } }, undefined, {
-          shallow: true,
-        });
+        push({ pathname: "/cars", query: { ...values, page: 1 } });
       }}
     >
       {({ values }) => (
