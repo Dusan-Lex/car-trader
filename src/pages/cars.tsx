@@ -1,7 +1,6 @@
 import { Grid, Pagination } from "@mui/material";
 import deepEqual from "fast-deep-equal";
 import { GetServerSideProps } from "next";
-import Head from "next/head";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import { useState } from "react";
